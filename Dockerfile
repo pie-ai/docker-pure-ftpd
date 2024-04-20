@@ -1,15 +1,12 @@
 #Stage 1 : builder debian image
-FROM debian:buster as builder
+FROM debian:stable as builder
 
 # properly setup debian sources
 ENV DEBIAN_FRONTEND noninteractive
-RUN echo "deb http://http.debian.net/debian buster main\n\
-deb-src http://http.debian.net/debian buster main\n\
-deb http://http.debian.net/debian buster-updates main\n\
-deb-src http://http.debian.net/debian buster-updates main\n\
-deb http://security.debian.org buster/updates main\n\
-deb-src http://security.debian.org buster/updates main\n\
-" > /etc/apt/sources.list
+RUN echo "deb http://deb.debian.org/debian bookworm main non-free-firmware\n\n\
+  deb-src http://deb.debian.org/debian bookworm main non-free-firmware\n\n\
+  deb http://deb.debian.org/debian-security/ bookworm-security main non-free-firmware\n\n\
+  deb-src http://deb.debian.org/debian-security/ bookworm-security main non-free-firmware" > /etc/apt/sources.list
 
 # install package building helpers
 # rsyslog for logging (ref https://github.com/stilliard/docker-pure-ftpd/issues/17)
@@ -29,7 +26,7 @@ RUN mkdir /tmp/pure-ftpd/ && \
 
 
 #Stage 2 : actual pure-ftpd image
-FROM debian:buster-slim
+FROM debian:stable-slim
 
 # feel free to change this ;)
 LABEL maintainer "Andrew Stilliard <andrew.stilliard@gmail.com>"
@@ -43,12 +40,14 @@ RUN apt-get -y update && \
 	libcap2 \
     libmariadb3 \
 	libpam0g \
-	libssl1.1 \
     lsb-base \
     openbsd-inetd \
     openssl \
     perl \
-	rsyslog
+	rsyslog \
+    libsodium23
+
+#libssl1.1 \
 
 COPY --from=builder /tmp/pure-ftpd/*.deb /tmp/pure-ftpd/
 
